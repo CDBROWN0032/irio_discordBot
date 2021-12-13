@@ -52,13 +52,6 @@ module.exports = {
 	}
 };
 
-function arrayRemove(arr, value) { 
-    
-        return arr.filter(function(ele){ 
-            return ele != value; 
-        });
-    }
-
 const getRequestUrl = (user) => {
     return `${rioConfig.hostName}/${rioConfig.getUser}?region=${rioConfig.region}&realm=${user.server}&name=${user.name}&fields=${rioConfig.fields}`;
 }
