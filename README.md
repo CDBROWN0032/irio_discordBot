@@ -1,2 +1,2 @@
-# irio_discordBot
+# iRio DiscordBot
 discord bot for raider.io
