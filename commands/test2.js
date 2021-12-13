@@ -11,39 +11,59 @@ const rioConfig = {
     getUser: 'api/v1/characters/profile'
 };
 const logo = 'https://i.imgur.com/p9YJXv4.png';
-var pjson = require('../package.json');
+const pjson = require('../package.json');
+const today = new Date();
+const dateFloor = new Date(today.setDate(today.getDate()-5)); //5 days ago
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('test2')
-		.setDescription('test rio'),
+		.setDescription('multi-user test'),
 	async execute(interaction) {	
+		interaction.reply('Running unique key and user test');
+
  		const toons = userStore.Users;
-		const newTest = getToonsRioData(toons, interaction);
- 		//const result = await awaitAll(toons, getRioData)		
-  		//playgroundEmbed(interaction, result[0]);		
+		const allRioData = await getAll(toons, getRioData);
+
+		let allRecentRuns = [];
+		allRioData.forEach((rioData) => {
+			let recentRuns = rioData.mythic_plus_recent_runs;
+			allRecentRuns.push({ runs: recentRuns });
+		})
+
+		let filteredRecentKeys = [];
+		allRecentRuns.forEach((recentRun) => {
+			recentRun.runs.forEach((key) => {				
+				let runDate = new Date(key.completed_at);
+				if (runDate > dateFloor){					
+					filteredRecentKeys.push(key);
+				}
+			})			
+		})
+
+		const keyIdx = 'url';
+		const uniqueKeys = [...new Map(filteredRecentKeys.map(item => [item[keyIdx], item])).values()];
+		
+		 uniqueKeys.forEach(key => {
+			 sendEmbed(interaction, key);
+		 })
+		
 	}
 };
 
-const getToonsRioData = (toons, interaction) => {
-	let toonOutput = [];
-
-	toons.forEach(toon => {
-		toonOutput.push({name: toon.name, value: toon.server});
-	})
-
-	const embed = new MessageEmbed()
-	.setColor('#0099ff')
-	.setTitle('Toon Test')
-	.addFields(toonOutput);
-	interaction.channel.send({ embeds: [embed] });
-}
+function arrayRemove(arr, value) { 
+    
+        return arr.filter(function(ele){ 
+            return ele != value; 
+        });
+    }
 
 const getRequestUrl = (user) => {
     return `${rioConfig.hostName}/${rioConfig.getUser}?region=${rioConfig.region}&realm=${user.server}&name=${user.name}&fields=${rioConfig.fields}`;
 }
 
-function awaitAll(list, asyncFn) {
+const getAll = async(list, asyncFn) => {
   const promises = [];
 
   list.forEach(x => {
@@ -53,8 +73,9 @@ function awaitAll(list, asyncFn) {
   return Promise.all(promises);
 }
 
-const getRioData = (toon) => {
+const getRioData = (toon) => {	
     const requestUrl = getRequestUrl(toon);
+	// console.log('Called: ', toon);
     let rioData = axios.get(requestUrl).then(res => {
         return res.data;
     })
@@ -65,11 +86,11 @@ const getRioData = (toon) => {
     return Promise.resolve(rioData);
 }
 
-const playgroundEmbed = async(interaction, result) => {
-	let dungeon = result.mythic_plus_recent_runs[0];
+const sendEmbed = async(interaction, uniqueKeys) => {
+	let dungeon = uniqueKeys;
 
 	let playersString = '';
-	let players = await getPlayers(dungeon.url);
+	let players = await getPlayers(uniqueKeys.url);
 
 	players.forEach((player, idx) => {
 		let emblem = idx === 0 ? ':shield:' : idx === 1 ? ':green_heart:' : ':crossed_swords:';
@@ -107,9 +128,23 @@ const getPlayers = async(url) => {
 			if(charString.length > 0){
 				let items = charString.split(' ');
 				let character = {}
-				character.spec =  items[0];
-				character.class =  items[1];
-				character.name =  items[2];
+
+				switch (items.length) {
+					case 3:
+						character.spec =  items[0];
+						character.class =  items[1];
+						character.name =  items[2];												
+						break;
+					case 4:
+						character.spec =  `${items[0]} ${items[1]}`
+						character.class =  items[2];
+						character.name =  items[3];
+						break;
+					default:
+						break;
+				}
+
+
 				character.score = score;
 				characters.push(character);									
 			}
