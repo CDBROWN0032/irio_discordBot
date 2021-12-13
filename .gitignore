@@ -137,3 +137,4 @@ dist
 # temp for privacy
 users.json
 config.json
+package-lock.json
