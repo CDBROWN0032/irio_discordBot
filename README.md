@@ -6,5 +6,4 @@ currently in pre-release
 
 setup: 
 
-#dev setup
 npm install 
