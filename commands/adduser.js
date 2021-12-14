@@ -19,6 +19,7 @@ module.exports = {
 				.setDescription('server of character')
 				.setRequired(true)),								
 	async execute(interaction) {	
+
 		const savedUsers = userStore.Users;
 		let currentUsers = savedUsers.map(item => item.owner).filter((value, index, self) => self.indexOf(value) === index)
 
@@ -41,6 +42,7 @@ module.exports = {
 			if(err) throw err;
 		})
 
-		interaction.reply("User Created");
+		console.log(`${interaction.user.tag} registered ${newCharacter.name} ${newCharacter.server} `);
+		interaction.reply($`Registered Character:  ${newCharacter.name} ${newCharacter.server}`);
 	}
 };

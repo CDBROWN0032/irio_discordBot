@@ -10,6 +10,7 @@ module.exports = {
 		.setName('users')
 		.setDescription('users registered to bot'),
 	async execute(interaction) {	
+		console.log(`${interaction.user.tag} requested users`);
  		const toons = userStore.Users;
 		const result = await displayToonsOwnerData(toons, interaction);
 		interaction.reply({ embeds: [result] });

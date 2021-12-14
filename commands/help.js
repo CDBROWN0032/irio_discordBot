@@ -8,12 +8,10 @@ module.exports = {
         .setName('help')
         .setDescription('list of commands from bot'),
     async execute (interaction) {
-       
+        console.log(`${interaction.user.tag} requested help`);
         const result = await displayCommands();
 		interaction.reply({ embeds: [result] });
-
     }
-
 }
 
 const displayCommands = async() => {
@@ -32,7 +30,7 @@ const displayCommands = async() => {
 
     const embed = new MessageEmbed()
     .setColor('#0099ff')
-    .setTitle('Commands')
+    .setTitle('Help!')
     .addFields(commandsOutput)
     .setTimestamp()			
     .setFooter(`${pjson.name} v${pjson.version}`, logo)	        
