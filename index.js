@@ -1,7 +1,7 @@
-// Require the necessary discord.js classes
 const { Client, Intents, Collection } = require('discord.js');
 const { token } = require('./config.json');
 const fs = require('fs');
+const cron = require('node-cron');
 
 const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
@@ -21,6 +21,14 @@ for (const file of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args));
 	}
 }
+
+client.on('ready', (client) => {
+	// client.channels.cache.get(channelId).send("iRio is Alive!");
+		cron.schedule('* * * * *', function() {  			// second minute hour day month year
+			let currentTime = new Date().toLocaleString();
+			console.log(`Cron Heartbeat: ${currentTime}`)
+		});
+})
 
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
