@@ -97,7 +97,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
     const timeNow = new Date().toISOString();
 
     awaitAll(toons, getRioData)
-        //.then(results => console.log('results: ', results))
         .then(results => playground(results[0]))
         
         

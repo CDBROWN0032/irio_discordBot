@@ -10,7 +10,6 @@ module.exports = {
     async execute (interaction) {
        
         const result = await displayCommands();
-        console.log('embed', result);
 		interaction.reply({ embeds: [result] });
 
     }
@@ -37,6 +36,5 @@ const displayCommands = async() => {
     .addFields(commandsOutput)
     .setTimestamp()			
     .setFooter(`${pjson.name} v${pjson.version}`, logo)	        
-    console.log('return embed', embed);
     return embed;
 }

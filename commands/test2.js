@@ -68,7 +68,6 @@ const getAll = async(list, asyncFn) => {
 
 const getRioData = (toon) => {	
     const requestUrl = getRequestUrl(toon);
-	// console.log('Called: ', toon);
     let rioData = axios.get(requestUrl).then(res => {
         return res.data;
     })
@@ -97,7 +96,8 @@ const sendEmbed = async(interaction, uniqueKeys) => {
 	.setURL(`${dungeon.url}`)
 	.setAuthor(`${pjson.name} ${pjson.version}`, logo)
 	.setDescription(`${affixes[0].name} - ${affixes[1].name} - ${affixes[2].name} - ${affixes[3].name}`)
-	.setThumbnail('https://static.wikia.nocookie.net/wowpedia/images/6/60/AllianceLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123400')  // - find alliance and horde emblem ffs
+	.setThumbnail('https://static.wikia.nocookie.net/wowpedia/images/6/60/AllianceLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123400')
+	//getFactionEmblem()
 	.addFields(				
 			{ name: '\u200B', value: `${playersString}` },        		
 		)
@@ -144,6 +144,14 @@ const getPlayers = async(url) => {
 		})				
 	}
 	return characters;	    	
+}
+
+const getFactionEmblem = (faction) => {
+	switch (faction) {
+		case 'alliancebanner1': return 'https://static.wikia.nocookie.net/wowpedia/images/6/60/AllianceLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123400'; break;
+		case 'hordebanner1': return 'https://static.wikia.nocookie.net/wowpedia/images/e/e2/HordeLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123137'; break;				
+		default: return 'https://blogs.library.duke.edu/bitstreams/files/2016/06/indian_head.jpg'; break;		
+	}
 }
 
 const getDungeonImage = (dungeon) => {

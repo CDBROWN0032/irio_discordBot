@@ -23,7 +23,6 @@ for (const file of eventFiles) {
 }
 
 client.on('interactionCreate', async interaction => {
-	// console.log('interaction: ', interaction.options)
 	if (!interaction.isCommand()) return;
 
 	const command = client.commands.get(interaction.commandName);
