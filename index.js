@@ -3,6 +3,7 @@ const { token } = require('./config.json');
 const fs = require('fs');
 const cron = require('node-cron');
 
+
 const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -22,9 +23,9 @@ for (const file of eventFiles) {
 	}
 }
 
-client.on('ready', (client) => {
-	// client.channels.cache.get(channelId).send("iRio is Alive!");
-		cron.schedule('* * * * *', function() {  			// second minute hour day month year
+client.on('ready', () => {
+		console.log("Cron Heartbeat: Started");
+		cron.schedule('0 * * * *', function() {
 			let currentTime = new Date().toLocaleString();
 			console.log(`Cron Heartbeat: ${currentTime}`)
 		});

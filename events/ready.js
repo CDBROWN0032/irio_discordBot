@@ -9,9 +9,5 @@ module.exports = {
 	execute(client) {
 		console.log(`Ready! Logged in as ${client.user.tag}`);		
 		client.channels.cache.get(channelId).send("iRio is Alive!");
-		// cron.schedule('*/1 * * * *', function() {  			// second minute hour day month year
-		// 	let currentTime = new Date().toLocaleString();
-		// 	console.log(`Cron Heartbeat: ${currentTime}`)
-		// });
 	},
 };
