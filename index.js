@@ -2,6 +2,7 @@ const { Client, Intents, Collection } = require('discord.js');
 const { token } = require('./config.json');
 const fs = require('fs');
 const cron = require('node-cron');
+const arq = require('./autoRequest.js');
 
 
 const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
@@ -24,11 +25,8 @@ for (const file of eventFiles) {
 }
 
 client.on('ready', () => {
-		console.log("Cron Heartbeat: Started");
-		cron.schedule('0 * * * *', function() {
-			let currentTime = new Date().toLocaleString();
-			console.log(`Cron Heartbeat: ${currentTime}`)
-		});
+		
+		
 })
 
 client.on('interactionCreate', async interaction => {
@@ -47,3 +45,8 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(token);
+
+console.log('Cron Started');
+const scheduler = cron.schedule('0 */1 * * *', function() {
+			arq.sendRequest();
+		});
