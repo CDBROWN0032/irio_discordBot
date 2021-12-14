@@ -159,7 +159,7 @@ const getDungeonImage = (dungeon) => {
 	switch (dungeon) {
 		case 'NW': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blte1ed2df6958891bb/5fbc2f3c21b96a46dc51a9b1/NecroticWake_Masthead.jpg'; break;
 		case 'DOW': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blte004d75bf87a697a/5fbc2f32a9e913483b74d52f/TheOtherSide_Masthead.jpg'; break;
-		case 'HOT': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt4752e815a80607d4/5fbc2f3b0b0a825636795f4d/HallsOfAtonement_Masthead.jpg'; break;
+		case 'HOA': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt4752e815a80607d4/5fbc2f3b0b0a825636795f4d/HallsOfAtonement_Masthead.jpg'; break;
 		case 'MISTS': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt1cabb390531166e9/5fbc2f319fbb9857903d99b8/TirnaScitheDungeon_Masthead.jpg'; break;
 		case 'PF': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/bltaabb8b49689b5614/5fbc2f3b46cf5a5635c5d3e6/PlagueFallDungeon_Masthead.jpg'; break;
 		case 'SD': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/bltf5a3620c49785a38/5fbc2f3bae5aee5796129654/SanguineDepthDungeon_Masthead.jpg'; break;
