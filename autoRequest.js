@@ -1,8 +1,11 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
+const fs = require('fs');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const userStore = require('./users.json');
+const keyStore = require('./processedKeys.json');
+const keyStorePath = './processedKeys.json';
 const rioConfig = {
 	hostName: 'https://raider.io',
 	method: 'GET',
@@ -18,8 +21,11 @@ const pjson = require('./package.json');
 
 const sendRequest = async (channel) => {
 
+	// const today = new Date();
 	var timeFloor = new Date();
-	timeFloor.setHours(timeFloor.getHours() - 2);
+	// timeFloor.setHours(timeFloor.getHours() - 12);
+	// timeFloor.setDate(timeFloor.getDate() - 1);
+	timeFloor.setDate(timeFloor.getDate() - 7);
 
 
 	console.log(`update process started for Channel: ${channel}...`);
@@ -45,7 +51,8 @@ const sendRequest = async (channel) => {
 	allRecentRuns.forEach((recentRun) => {
 		recentRun.runs.forEach((key) => {
 			let runDate = new Date(key.completed_at);
-			if (runDate > timeFloor) {
+			let isProcessed = checkProcessedKeys(key.url);
+			if (runDate > timeFloor && !isProcessed) {
 				filteredRecentKeys.push(key);
 			}
 		})
@@ -65,6 +72,33 @@ const sendRequest = async (channel) => {
 
 	console.log(`Processed ${uniqueKeys.length} key(s)`);
 };
+
+const checkProcessedKeys = (key) => {
+	return keyStore.Keys.some(k => k === key);
+}
+
+const saveProcessedKey = async (key) => {
+	const pKeys = fs.readFileSync(keyStorePath);
+	const pKeysData = JSON.parse(pKeys);
+	pKeysData.Keys.push(key);
+	var processedKey = JSON.stringify(pKeysData);
+	await fs.writeFileSync(keyStorePath, processedKey, (err) => {
+		if (err) console.log(`Error Processing Key: ${err}`);
+	})
+}
+
+const setStars = (upgradeCount) => {
+	switch (upgradeCount) {
+		case 1:
+			return ':star:';
+		case 2:
+			return `:star: :star:`;
+		case 3:
+			return ':star: :star: :star:';
+		default:
+			return ':x:';
+	}
+}
 
 const getRequestUrl = (user) => {
 	return `${rioConfig.hostName}/${rioConfig.getUser}?region=${rioConfig.region}&realm=${user.server}&name=${user.name}&fields=${rioConfig.fields}`;
@@ -98,7 +132,6 @@ const getRioData = (toon) => {
 
 const sendEmbed = async (channel, uniqueKeys) => {
 	let dungeon = uniqueKeys;
-
 	let playersString = '';
 	let players = await getPlayers(uniqueKeys.url);
 
@@ -110,20 +143,21 @@ const sendEmbed = async (channel, uniqueKeys) => {
 	let affixes = dungeon.affixes;
 	const rioEmbed = new MessageEmbed()
 		.setColor('#0099ff')
-		.setTitle(`${dungeon.short_name} +${dungeon.mythic_level}   -   ${millisToMinutesAndSeconds(dungeon.clear_time_ms)}/${millisToMinutesAndSeconds(dungeon.par_time_ms)} (${(dungeon.clear_time_ms / dungeon.par_time_ms).toLocaleString("en", { style: "percent" })})`)
+		.setTitle(`${dungeon.short_name} +${dungeon.mythic_level} - ${millisToMinutesAndSeconds(dungeon.clear_time_ms)}/${millisToMinutesAndSeconds(dungeon.par_time_ms)} (${(dungeon.clear_time_ms / dungeon.par_time_ms).toLocaleString("en", { style: "percent" })})  -  ${setStars(dungeon.num_keystone_upgrades)}`)
 		.setURL(`${dungeon.url}`)
 		.setAuthor(`${pjson.name} v${pjson.version}`, logo)
 		.setDescription(`${affixes[0].name} - ${affixes[1].name} - ${affixes[2].name} - ${affixes[3].name}`)
 		.setThumbnail('https://static.wikia.nocookie.net/wowpedia/images/6/60/AllianceLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123400')
 		//getFactionEmblem()
 		.addFields(
-			{ name: '\u200B', value: `${playersString}` },
+			{ name: `\u200B`, value: `${playersString}` }
 		)
 		.setImage(getDungeonImage(dungeon.short_name))
 		.setTimestamp()
 		.setFooter(`${pjson.name} v${pjson.version}`, logo)
 
 	channel.send({ embeds: [rioEmbed] });
+	saveProcessedKey(dungeon.url);
 }
 
 const getPlayers = async (url) => {

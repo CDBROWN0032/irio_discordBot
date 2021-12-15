@@ -1,6 +1,6 @@
 {
   "name": "irio",
-  "version": "1",
+  "version": "1.3",
   "description": "improved raider.io bot",
   "main": "index.js",
   "author": "Riivr",

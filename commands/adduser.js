@@ -23,9 +23,6 @@ module.exports = {
 		const savedUsers = userStore.Users;
 		let currentUsers = savedUsers.map(item => item.owner).filter((value, index, self) => self.indexOf(value) === index)
 
-		let itsMe = currentUsers.some((user) => { user == String(interaction.user.tag) });
-
-		
 		let newCharacter = {};
 		interaction.options._hoistedOptions.forEach((option) => {
 			let category = option.name;
