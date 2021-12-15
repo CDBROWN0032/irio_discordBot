@@ -8,7 +8,8 @@ const rioConfig = {
 	method: 'GET',
 	fields: 'mythic_plus_recent_runs',
 	region: 'us',
-	getUser: 'api/v1/characters/profile'
+	getUser: 'api/v1/characters/profile',
+	getAffixes: 'api/v1/mythic-plus/affixes?region=us&locale=en'
 };
 const logo = 'https://i.imgur.com/p9YJXv4.png';
 const pjson = require('./package.json');
@@ -18,7 +19,7 @@ const pjson = require('./package.json');
 const sendRequest = async (channel) => {
 
 	var timeFloor = new Date();
-	timeFloor.setHours( timeFloor.getHours() -1 );
+	timeFloor.setHours(timeFloor.getHours() - 1);
 
 	console.log(`update process started for Channel: ${channel}...`);
 
@@ -27,7 +28,7 @@ const sendRequest = async (channel) => {
 
 
 	let allRecentRuns = [];
-	allRioData.forEach((rioData) => {		
+	allRioData.forEach((rioData) => {
 		if (rioData.mythic_plus_recent_runs.length > 0) {
 			let recentRuns = rioData.mythic_plus_recent_runs;
 			allRecentRuns.push({ runs: recentRuns });
@@ -66,6 +67,10 @@ const sendRequest = async (channel) => {
 
 const getRequestUrl = (user) => {
 	return `${rioConfig.hostName}/${rioConfig.getUser}?region=${rioConfig.region}&realm=${user.server}&name=${user.name}&fields=${rioConfig.fields}`;
+}
+
+const getAffixUrl = () => {
+	return `${rioConfig.hostName}/${rioConfig.getAffixes}`;
 }
 
 const getAll = async (list, asyncFn) => {
@@ -187,4 +192,24 @@ function millisToMinutesAndSeconds(millis) {
 	return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
 }
 
+const getAffixes = async (channel) => {
+	const requestUrl = getAffixUrl();
+	console.log(channel);
+	axios.get(requestUrl).then(result => {
+		const affixData = result.data;
+		const rioEmbed = new MessageEmbed()
+			.setColor('#0099ff')
+			.setTitle(`Weekly Affixes`)
+			.setURL(`${affixData.leaderboard_url}`)
+			.setAuthor(`${pjson.name} v${pjson.version}`, logo)
+			.setDescription(`${affixData.title}`)
+			.setImage('https://pbs.twimg.com/media/EhLfNGQXYAUURhq.jpg')
+			.setTimestamp()
+			.setFooter(`${pjson.name} v${pjson.version}`, logo)
+
+		channel.send({ embeds: [rioEmbed] });
+	}).catch(err => console.log(`Error: ${err}`));
+}
+
+exports.getAffixes = getAffixes;
 exports.sendRequest = sendRequest;

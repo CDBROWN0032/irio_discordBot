@@ -48,3 +48,9 @@ const scheduler = cron.schedule('0 */1 * * *', function () {
 	const channel = client.channels.cache.get(channelId);
 	arq.sendRequest(channel);
 });
+
+const schedulerTwo = cron.schedule('0 11 * * Tue', function () {
+	const channelId = '920471658794467358'; // pogging-willow 
+	const channel = client.channels.cache.get('920471658794467358');
+	arq.getAffixes(channel);
+});
