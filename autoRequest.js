@@ -2,77 +2,81 @@ const cheerio = require('cheerio');
 const axios = require('axios');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
-const userStore = require('../users.json');
+const userStore = require('./users.json');
 const rioConfig = {
-  hostName: 'https://raider.io',
-  method: 'GET',
-  fields: 'mythic_plus_recent_runs',
-  region: 'us',
-  getUser: 'api/v1/characters/profile'
+	hostName: 'https://raider.io',
+	method: 'GET',
+	fields: 'mythic_plus_recent_runs',
+	region: 'us',
+	getUser: 'api/v1/characters/profile'
 };
 const logo = 'https://i.imgur.com/p9YJXv4.png';
-const pjson = require('../package.json');
-const today = new Date();
-const dateFloor = new Date(today.setDate(today.getDate() - 5)); //5 days ago
+const pjson = require('./package.json');
+// var timeFloor = new Date();
+// timeFloor.setHours( timeFloor.getHours() -1 );
 
-const sendRequest = (channel) => {
+const sendRequest = async (channel) => {
+
+	var timeFloor = new Date();
+	timeFloor.setHours( timeFloor.getHours() -1 );
+
+	console.log(`update process started for Channel: ${channel}...`);
+
+	const toons = userStore.Users;
+	const allRioData = await getAll(toons, getRioData);
 
 
-  console.log(`update process started for Channel: ${channel}...`);
+	let allRecentRuns = [];
+	allRioData.forEach((rioData) => {		
+		if (rioData.mythic_plus_recent_runs.length > 0) {
+			let recentRuns = rioData.mythic_plus_recent_runs;
+			allRecentRuns.push({ runs: recentRuns });
+		}
+	})
 
-  const toons = userStore.Users;
-  const allRioData = await getAll(toons, getRioData);
+	if (allRecentRuns.length < 1) {
+		console.log(`process exited: no updates`)
+		return false;
+	}
 
+	let filteredRecentKeys = [];
+	allRecentRuns.forEach((recentRun) => {
+		recentRun.runs.forEach((key) => {
+			let runDate = new Date(key.completed_at);
+			if (runDate > timeFloor) {
+				filteredRecentKeys.push(key);
+			}
+		})
+	})
 
-  let allRecentRuns = [];
-  allRioData.forEach((rioData) => {
-    let recentRuns = rioData.mythic_plus_recent_runs;
-    allRecentRuns.push({ runs: recentRuns });
-  })
+	if (filteredRecentKeys.length < 0) {
+		console.log(`process exited: no updates`)
+		return false;
+	}
 
-  if (allRecentRuns.length < 1) {
-    console.log(`process exited: no updates`)
-    return false;
-  }
+	const keyIdx = 'url';
+	const uniqueKeys = [...new Map(filteredRecentKeys.map(item => [item[keyIdx], item])).values()];
 
-  let filteredRecentKeys = [];
-  allRecentRuns.forEach((recentRun) => {
-    recentRun.runs.forEach((key) => {
-      let runDate = new Date(key.completed_at);
-      if (runDate > dateFloor) {
-        filteredRecentKeys.push(key);
-      }
-    })
-  })
+	uniqueKeys.forEach(key => {
+		sendEmbed(channel, key);
+	})
 
-  if (filteredRecentKeys.length < 0) {
-    console.log(`process exited: no updates`)
-    return false;
-  }
-
-  const keyIdx = 'url';
-  const uniqueKeys = [...new Map(filteredRecentKeys.map(item => [item[keyIdx], item])).values()];
-
-  uniqueKeys.forEach(key => {
-    sendEmbed(channel, key);
-  })
-
-  console.log(`Processed ${uniqueKeys.length} key(s)`);
+	console.log(`Processed ${uniqueKeys.length} key(s)`);
 };
 
- const getRequestUrl = (user) => {
-    return `${rioConfig.hostName}/${rioConfig.getUser}?region=${rioConfig.region}&realm=${user.server}&name=${user.name}&fields=${rioConfig.fields}`;
-  }
+const getRequestUrl = (user) => {
+	return `${rioConfig.hostName}/${rioConfig.getUser}?region=${rioConfig.region}&realm=${user.server}&name=${user.name}&fields=${rioConfig.fields}`;
+}
 
-  const getAll = async (list, asyncFn) => {
-    const promises = [];
+const getAll = async (list, asyncFn) => {
+	const promises = [];
 
-    list.forEach(x => {
-      promises.push(asyncFn(x));
-    });
+	list.forEach(x => {
+		promises.push(asyncFn(x));
+	});
 
-    return Promise.all(promises);
-  }
+	return Promise.all(promises);
+}
 
 const getRioData = (toon) => {
 	const requestUrl = getRequestUrl(toon);
@@ -102,7 +106,7 @@ const sendEmbed = async (channel, uniqueKeys) => {
 		.setColor('#0099ff')
 		.setTitle(`${dungeon.short_name} +${dungeon.mythic_level}   -   ${millisToMinutesAndSeconds(dungeon.clear_time_ms)}/${millisToMinutesAndSeconds(dungeon.par_time_ms)} (${(dungeon.clear_time_ms / dungeon.par_time_ms).toLocaleString("en", { style: "percent" })})`)
 		.setURL(`${dungeon.url}`)
-		.setAuthor(`${pjson.name} ${pjson.version}`, logo)
+		.setAuthor(`${pjson.name} v${pjson.version}`, logo)
 		.setDescription(`${affixes[0].name} - ${affixes[1].name} - ${affixes[2].name} - ${affixes[3].name}`)
 		.setThumbnail('https://static.wikia.nocookie.net/wowpedia/images/6/60/AllianceLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123400')
 		//getFactionEmblem()
@@ -111,10 +115,9 @@ const sendEmbed = async (channel, uniqueKeys) => {
 		)
 		.setImage(getDungeonImage(dungeon.short_name))
 		.setTimestamp()
-		.setFooter(`${pjson.name} ${pjson.version}`, logo)
+		.setFooter(`${pjson.name} v${pjson.version}`, logo)
 
-	// interaction.channel.send({ embeds: [exampleEmbed] });
-  channel.send({ embeds: [rioEmbed] });
+	channel.send({ embeds: [rioEmbed] });
 }
 
 const getPlayers = async (url) => {

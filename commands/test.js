@@ -12,9 +12,6 @@ const rioConfig = {
 };
 const logo = 'https://i.imgur.com/p9YJXv4.png';
 const pjson = require('../package.json');
-const today = new Date();
-const dateFloor = new Date(today.setDate(today.getDate()-5)); //5 days ago
-
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -23,7 +20,14 @@ module.exports = {
 	async execute(interaction) {	
 		interaction.reply('Running unique key and user test');
 
- 		const toons = userStore.Users;
+		let today = new Date();
+		var timeFloor = new Date();
+		timeFloor.setHours( timeFloor.getHours() -1 );
+
+		console.log(today);
+		console.log(timeFloor);
+
+		const toons = userStore.Users;
 		const allRioData = await getAll(toons, getRioData);
 
 		let allRecentRuns = [];
@@ -36,7 +40,7 @@ module.exports = {
 		allRecentRuns.forEach((recentRun) => {
 			recentRun.runs.forEach((key) => {				
 				let runDate = new Date(key.completed_at);
-				if (runDate > dateFloor){					
+				if (runDate > timeFloor){					
 					filteredRecentKeys.push(key);
 				}
 			})			
