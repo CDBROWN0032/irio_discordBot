@@ -24,11 +24,6 @@ for (const file of eventFiles) {
 	}
 }
 
-client.on('ready', () => {
-		
-		
-})
-
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
@@ -47,6 +42,9 @@ client.on('interactionCreate', async interaction => {
 client.login(token);
 
 console.log('Cron Started');
-const scheduler = cron.schedule('0 */1 * * *', function() {
-			arq.sendRequest();
-		});
+// const scheduler = cron.schedule('0 */1 * * *', function () {
+const scheduler = cron.schedule('* * * * *', function () {
+	const channelId = '917932839427784757';
+	const channel = client.channels.cache.get(channelId);
+	arq.sendRequest(channel);
+});
