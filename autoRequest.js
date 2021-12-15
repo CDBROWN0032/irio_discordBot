@@ -19,7 +19,8 @@ const pjson = require('./package.json');
 const sendRequest = async (channel) => {
 
 	var timeFloor = new Date();
-	timeFloor.setHours(timeFloor.getHours() - 1);
+	timeFloor.setHours(timeFloor.getHours() - 2);
+
 
 	console.log(`update process started for Channel: ${channel}...`);
 

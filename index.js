@@ -42,14 +42,14 @@ client.on('interactionCreate', async interaction => {
 client.login(token);
 
 console.log('Cron Started');
-const scheduler = cron.schedule('0 */1 * * *', function () {
+const rioScheduler = cron.schedule('0 */2 * * *', function () {
 	//const channelId = '917932839427784757'; // test server
 	const channelId = '920471658794467358'; // pogging-willow 
 	const channel = client.channels.cache.get(channelId);
 	arq.sendRequest(channel);
 });
 
-const schedulerTwo = cron.schedule('0 11 * * Tue', function () {
+const affixScheduler = cron.schedule('0 11 * * Tue', function () {
 	const channelId = '920471658794467358'; // pogging-willow 
 	const channel = client.channels.cache.get('920471658794467358');
 	arq.getAffixes(channel);
