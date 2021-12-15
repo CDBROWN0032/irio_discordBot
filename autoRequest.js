@@ -4,7 +4,6 @@ const fs = require('fs');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const userStore = require('./users.json');
-const keyStore = require('./processedKeys.json');
 const keyStorePath = './processedKeys.json';
 const rioConfig = {
 	hostName: 'https://raider.io',
@@ -24,56 +23,54 @@ const sendRequest = async (channel) => {
 	// const today = new Date();
 	var timeFloor = new Date();
 	// timeFloor.setHours(timeFloor.getHours() - 12);
-	// timeFloor.setDate(timeFloor.getDate() - 1);
-	timeFloor.setDate(timeFloor.getDate() - 7);
-
-
+	timeFloor.setDate(timeFloor.getDate() - 3);
 	console.log(`update process started for Channel: ${channel}...`);
 
 	const toons = userStore.Users;
 	const allRioData = await getAll(toons, getRioData);
 
-
 	let allRecentRuns = [];
-	allRioData.forEach((rioData) => {
-		if (rioData.mythic_plus_recent_runs.length > 0) {
-			let recentRuns = rioData.mythic_plus_recent_runs;
-			allRecentRuns.push({ runs: recentRuns });
+	allRioData.forEach((rioData) => {		
+		if (rioData !== undefined && rioData.mythic_plus_recent_runs.length > 0) {
+			rioData.mythic_plus_recent_runs.forEach(run => {
+				allRecentRuns.push({ run });
+			})
 		}
 	})
 
-	if (allRecentRuns.length < 1) {
-		console.log(`process exited: no updates`)
-		return false;
-	}
+	// if (allRecentRuns.length < 1) {
+	// 	console.log(`process exited: no updates`)
+	// 	return false;
+	// }
 
 	let filteredRecentKeys = [];
-	allRecentRuns.forEach((recentRun) => {
-		recentRun.runs.forEach((key) => {
-			let runDate = new Date(key.completed_at);
-			let isProcessed = checkProcessedKeys(key.url);
-			if (runDate > timeFloor && !isProcessed) {
-				filteredRecentKeys.push(key);
-			}
-		})
+	allRecentRuns.forEach((key) => {
+		let runDate = new Date(key.run.completed_at);
+		let isProcessed = checkProcessedKeys(key.run.url);
+		if ((runDate > timeFloor) && !isProcessed) {
+			filteredRecentKeys.push(key.run);
+		}
 	})
 
-	if (filteredRecentKeys.length < 0) {
-		console.log(`process exited: no updates`)
-		return false;
-	}
+	// if (filteredRecentKeys.length < 1) {
+	// 	console.log(`process exited: no updates`)
+	// 	return false;
+	// }
 
 	const keyIdx = 'url';
 	const uniqueKeys = [...new Map(filteredRecentKeys.map(item => [item[keyIdx], item])).values()];
 
-	uniqueKeys.forEach(key => {
-		sendEmbed(channel, key);
-	})
+	if(uniqueKeys.length < 1)
+		console.log('No keys to process');
 
-	console.log(`Processed ${uniqueKeys.length} key(s)`);
+	uniqueKeys.forEach((key) => {
+		sendEmbed(channel, key);
+	})	
 };
 
 const checkProcessedKeys = (key) => {
+	let keyStoreFile = fs.readFileSync(keyStorePath);
+	let keyStore = JSON.parse(keyStoreFile);
 	return keyStore.Keys.some(k => k === key);
 }
 
@@ -82,7 +79,7 @@ const saveProcessedKey = async (key) => {
 	const pKeysData = JSON.parse(pKeys);
 	pKeysData.Keys.push(key);
 	var processedKey = JSON.stringify(pKeysData);
-	await fs.writeFileSync(keyStorePath, processedKey, (err) => {
+	fs.writeFileSync(keyStorePath, processedKey, (err) => {
 		if (err) console.log(`Error Processing Key: ${err}`);
 	})
 }
@@ -124,6 +121,7 @@ const getRioData = (toon) => {
 		return res.data;
 	})
 		.catch(err => {
+			console.error(`Player Request Failed: ${toon.name} ${toon.server}`)
 			console.error('Error: ', err.message);
 		})
 
@@ -145,19 +143,20 @@ const sendEmbed = async (channel, uniqueKeys) => {
 		.setColor('#0099ff')
 		.setTitle(`${dungeon.short_name} +${dungeon.mythic_level} - ${millisToMinutesAndSeconds(dungeon.clear_time_ms)}/${millisToMinutesAndSeconds(dungeon.par_time_ms)} (${(dungeon.clear_time_ms / dungeon.par_time_ms).toLocaleString("en", { style: "percent" })})  -  ${setStars(dungeon.num_keystone_upgrades)}`)
 		.setURL(`${dungeon.url}`)
-		.setAuthor(`${pjson.name} v${pjson.version}`, logo)
+		.setAuthor(`iRio v${pjson.version}`)
 		.setDescription(`${affixes[0].name} - ${affixes[1].name} - ${affixes[2].name} - ${affixes[3].name}`)
 		.setThumbnail('https://static.wikia.nocookie.net/wowpedia/images/6/60/AllianceLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123400')
 		//getFactionEmblem()
 		.addFields(
-			{ name: `\u200B`, value: `${playersString}` }
+			{ name: '\u200B', value: `${playersString}` }
 		)
 		.setImage(getDungeonImage(dungeon.short_name))
-		.setTimestamp()
-		.setFooter(`${pjson.name} v${pjson.version}`, logo)
+		.setTimestamp(new Date(dungeon.completed_at))
+		.setFooter('Completed', logo)
 
 	channel.send({ embeds: [rioEmbed] });
-	saveProcessedKey(dungeon.url);
+	await saveProcessedKey(dungeon.url);
+	console.log(`Processed Key: ${dungeon.short_name} +${dungeon.mythic_level}`);
 }
 
 const getPlayers = async (url) => {

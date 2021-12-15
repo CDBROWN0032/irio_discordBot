@@ -1,5 +1,5 @@
 const { Client, Intents, Collection } = require('discord.js');
-const { token } = require('./config.json');
+const { token, channelId } = require('./config.json');
 const fs = require('fs');
 const cron = require('node-cron');
 const arq = require('./autoRequest.js');
@@ -44,14 +44,11 @@ client.login(token);
 console.log('Cron Started');
 // const rioScheduler = cron.schedule('0 */1 * * *', function () {
 const rioScheduler = cron.schedule('*/15 * * * *', function () {
-	//const channelId = '917932839427784757'; // test server
-	const channelId = '920471658794467358'; // pogging-willow 
 	const channel = client.channels.cache.get(channelId);
 	arq.sendRequest(channel);
 });
 
 const affixScheduler = cron.schedule('0 11 * * Tue', function () {
-	const channelId = '920471658794467358'; // pogging-willow 
-	const channel = client.channels.cache.get('920471658794467358');
+	const channel = client.channels.cache.get(channelId);
 	arq.getAffixes(channel);
 });
