@@ -24,7 +24,7 @@ const sendRequest = async (channel) => {
 	var timeFloor = new Date();
 	// timeFloor.setHours(timeFloor.getHours() - 12);
 	timeFloor.setDate(timeFloor.getDate() - 3);
-	console.log(`update process started for Channel: ${channel}...`);
+	// console.log(`update process started for Channel: ${channel}...`);
 
 	const toons = userStore.Users;
 	const allRioData = await getAll(toons, getRioData);
@@ -58,10 +58,7 @@ const sendRequest = async (channel) => {
 	// }
 
 	const keyIdx = 'url';
-	const uniqueKeys = [...new Map(filteredRecentKeys.map(item => [item[keyIdx], item])).values()];
-
-	if(uniqueKeys.length < 1)
-		console.log('No keys to process');
+	const uniqueKeys = [...new Map(filteredRecentKeys.map(item => [item[keyIdx], item])).values()];	
 
 	uniqueKeys.forEach((key) => {
 		sendEmbed(channel, key);
@@ -138,13 +135,13 @@ const sendEmbed = async (channel, uniqueKeys) => {
 		playersString += `${emblem} ${player.name} (${player.spec} ${player.class}) - ${player.score}\n`;
 	})
 
-	let affixes = dungeon.affixes;
+	//let affixes = dungeon.affixes;
 	const rioEmbed = new MessageEmbed()
 		.setColor('#0099ff')
 		.setTitle(`${dungeon.short_name} +${dungeon.mythic_level} - ${millisToMinutesAndSeconds(dungeon.clear_time_ms)}/${millisToMinutesAndSeconds(dungeon.par_time_ms)} (${(dungeon.clear_time_ms / dungeon.par_time_ms).toLocaleString("en", { style: "percent" })})  -  ${setStars(dungeon.num_keystone_upgrades)}`)
 		.setURL(`${dungeon.url}`)
 		.setAuthor(`iRio v${pjson.version}`)
-		.setDescription(`${affixes[0].name} - ${affixes[1].name} - ${affixes[2].name} - ${affixes[3].name}`)
+		.setDescription(`${setAffixes(dungeon)}`)
 		.setThumbnail('https://static.wikia.nocookie.net/wowpedia/images/6/60/AllianceLogo.png/revision/latest/scale-to-width-down/250?cb=20180419123400')
 		//getFactionEmblem()
 		.addFields(
@@ -157,6 +154,12 @@ const sendEmbed = async (channel, uniqueKeys) => {
 	channel.send({ embeds: [rioEmbed] });
 	await saveProcessedKey(dungeon.url);
 	console.log(`Processed Key: ${dungeon.short_name} +${dungeon.mythic_level}`);
+}
+
+const setAffixes = (dungeon) => {
+	let affixes = "";
+	dungeon.affixes.forEach(affix => { affixes += `${affix.name}   `; });
+	return affixes;
 }
 
 const getPlayers = async (url) => {
@@ -207,15 +210,25 @@ const getFactionEmblem = (faction) => {
 
 const getDungeonImage = (dungeon) => {
 
+//https://worldofwarcraft.com/en-us/game/pve/leaderboards
+
 	switch (dungeon) {
 		case 'NW': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blte1ed2df6958891bb/5fbc2f3c21b96a46dc51a9b1/NecroticWake_Masthead.jpg'; break;
-		case 'DOW': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blte004d75bf87a697a/5fbc2f32a9e913483b74d52f/TheOtherSide_Masthead.jpg'; break;
+		case 'DOS': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blte004d75bf87a697a/5fbc2f32a9e913483b74d52f/TheOtherSide_Masthead.jpg'; break;
 		case 'HOA': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt4752e815a80607d4/5fbc2f3b0b0a825636795f4d/HallsOfAtonement_Masthead.jpg'; break;
 		case 'MISTS': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt1cabb390531166e9/5fbc2f319fbb9857903d99b8/TirnaScitheDungeon_Masthead.jpg'; break;
 		case 'PF': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/bltaabb8b49689b5614/5fbc2f3b46cf5a5635c5d3e6/PlagueFallDungeon_Masthead.jpg'; break;
 		case 'SD': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/bltf5a3620c49785a38/5fbc2f3bae5aee5796129654/SanguineDepthDungeon_Masthead.jpg'; break;
 		case 'SOA': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt04641bdb32cc333d/5fbc2f328acca34834e646d1/SpiresofAscension_Masthead.jpg'; break;
 		case 'TOP': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt63092561516428b8/5fbc2f320100b746db953fb0/TheaterOfPain_Masthead.jpg'; break;
+		case 'GMBT':
+		case 'STRT': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt04b224ffd75e5344/62156466e47e3d2eff20ff48/Tazavesh_Veiled_Market_Masthead.jpg'; break;
+		case 'ID': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/bltbff485da7157b7ed/62e85d7c9aaaf31114dc7e27/Iron_Docks.jpg'; break;
+		case 'GD': return 'https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt378bceb26d1d6cda/62e85d7c1aa84c11737bcecf/Grimrail_Depot.jpg'; break;
+		case 'YARD':
+		case 'WORK': return 'https://bnetcmsus-a.akamaihd.net/cms/template_resource/rt/RTZQ5TECTAS61578611286324.jpg'; break;
+		case 'LOWR': 
+		case 'UPPR': return 'https://bnetcmsus-a.akamaihd.net/cms/template_resource/WK5UQJR8MKMG1490370283470.jpg'; break;
 		default: return 'https://blogs.library.duke.edu/bitstreams/files/2016/06/indian_head.jpg'; break;
 	}
 }
@@ -227,8 +240,7 @@ function millisToMinutesAndSeconds(millis) {
 }
 
 const getAffixes = async (channel) => {
-	const requestUrl = getAffixUrl();
-	console.log(channel);
+	const requestUrl = getAffixUrl();	
 	axios.get(requestUrl).then(result => {
 		const affixData = result.data;
 		const rioEmbed = new MessageEmbed()

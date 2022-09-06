@@ -43,12 +43,12 @@ client.login(token);
 
 console.log('Cron Started');
 // const rioScheduler = cron.schedule('0 */1 * * *', function () {
-const rioScheduler = cron.schedule('*/15 * * * *', function () {
+const rioScheduler = cron.schedule('*/30 * * * *', function () {
 	const channel = client.channels.cache.get(channelId);
 	arq.sendRequest(channel);
 });
 
-const affixScheduler = cron.schedule('0 11 * * Tue', function () {
+const affixScheduler = cron.schedule('* 17 * * Tue', function () {
 	const channel = client.channels.cache.get(channelId);
 	arq.getAffixes(channel);
 });

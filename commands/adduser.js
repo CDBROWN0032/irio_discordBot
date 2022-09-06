@@ -40,6 +40,6 @@ module.exports = {
 		})
 
 		console.log(`${interaction.user.tag} registered ${newCharacter.name} ${newCharacter.server} `);
-		interaction.reply($`Registered Character:  ${newCharacter.name} ${newCharacter.server}`);
+		interaction.reply(`Registered Character:  ${newCharacter.name} ${newCharacter.server}`);
 	}
 };
